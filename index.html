@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Birthday</title>
+<style>
+  :root{
+    --bg:#5b3828; --panel:#24170f; --cream:#f1d1a6; --ink:#fff8ed;
+    --line:#ead1ad; --pink:#f19bb8; --green:#69b47a; --blue:#63a8df; --orange:#f0a46e;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+    font-family: system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;
+  }
+  .page{width:min(100%,720px); margin:auto; padding:38px 22px 56px}
+  .title{
+    text-align:center; font-weight:900; font-size:clamp(42px,11vw,76px);
+    line-height:.95; letter-spacing:-2px; direction:ltr; margin:8px 0 20px;
+    font-family:"Trebuchet MS",Arial,sans-serif;
+  }
+  .title span:nth-child(1){color:var(--pink)} .title span:nth-child(2){color:var(--orange)}
+  .title span:nth-child(3){color:var(--green)} .title span:nth-child(4){color:var(--blue)}
+  .title span:nth-child(5){color:#e7a3b8} .title span:nth-child(6){color:#e7b06c}
+  .doodle{display:block;text-align:center;font-size:24px;opacity:.9;margin-bottom:2px}
+  .art{display:flex;justify-content:center;margin:4px 0 20px}
+  .art img{width:min(92%,520px);max-height:330px;object-fit:contain;mix-blend-mode:normal;border-radius:18px}
+  .card{
+    background:rgba(28,18,12,.88); border-radius:25px; padding:25px 22px;
+    box-shadow:0 12px 35px rgba(0,0,0,.12); margin-top:18px;
+  }
+  .count{display:flex;justify-content:center;align-items:center;gap:18px;direction:ltr}
+  .unit{text-align:center;min-width:110px}
+  .num{font-size:clamp(42px,11vw,72px);font-weight:800;letter-spacing:2px;line-height:1}
+  .label{font-size:16px;color:#f0dfc8;margin-top:10px}
+  .sep{font-size:46px;opacity:.75;margin-top:-16px}
+  .meta{text-align:center;font-size:16px;color:#ead8c1;margin-top:10px}
+  .message{
+    width:100%; min-height:120px; resize:vertical; border:1px solid rgba(239,213,180,.25);
+    border-radius:20px; background:rgba(28,18,12,.8); color:#fff8ed; padding:18px;
+    font:inherit; outline:none; margin-top:18px;
+  }
+  .message::placeholder{color:#d5c0a7}
+  .buttons{display:grid;gap:13px;margin-top:14px}
+  button{
+    width:100%; min-height:58px; border-radius:30px; font:700 18px inherit;
+    cursor:pointer; transition:.18s transform,.18s opacity;
+  }
+  button:active{transform:scale(.98)}
+  .send{background:var(--cream);color:#2a1b12;border:0}
+  .sweet{background:transparent;color:#fff1dc;border:2px solid #e7cfac}
+  .hidden{display:none}
+  .after{
+    text-align:center; padding:32px 18px; border-radius:25px; background:rgba(28,18,12,.88);
+  }
+  .after h2{margin:0 0 10px;font-size:30px}
+  .after p{margin:0 0 20px;color:#ead8c1}
+  .toast{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+    background:#f1d1a6;color:#2a1b12;padding:12px 18px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:.25s;z-index:5;white-space:nowrap
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media(max-width:520px){
+    .page{padding:24px 16px 40px}
+    .count{gap:8px}.unit{min-width:0;flex:1}.sep{font-size:34px}
+    .art img{width:100%;max-height:300px}
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="doodle">♡</div>
+  <h1 class="title" aria-label="Happy Birthday">
+    <span>H</span><span>a</span><span>p</span><span>p</span><span>y</span>
+    <span> B</span><span>irthday</span>
+  </h1>
+
+  <section class="art">
+    <img src="character.png" alt="birthday cake illustration">
+  </section>
+
+  <section id="countCard" class="card">
+    <div class="count" aria-live="polite">
+      <div class="unit"><div id="hours" class="num">298</div><div class="label">ساعة</div></div>
+      <div class="sep">:</div>
+      <div class="unit"><div id="minutes" class="num">35</div><div class="label">دقيقة</div></div>
+      <div class="sep">:</div>
+      <div class="unit"><div id="seconds" class="num">00</div><div class="label">ثانية</div></div>
+    </div>
+  </section>
+
+  <section id="formArea">
+    <textarea id="message" class="message" maxlength="1000" placeholder="اكتب رسالتك هنا..."></textarea>
+    <div class="buttons">
+      <button class="send" id="sendBtn">إرسال الرسالة</button>
+      <button class="sweet" id="sweetBtn">♡ &nbsp; إرسال كلمة حلوة</button>
+    </div>
+  </section>
+
+  <section id="after" class="after hidden">
+    <h2>وصلنا للوقت</h2>
+    <p>دلوقتي تقدر تبعت رسالتك.</p>
+    <button class="send" id="afterBtn">اكتب الرسالة</button>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  // 13 October 2026, 05:00 AM in Egypt (UTC+3 during October 2026).
+  const target = new Date("2026-10-13T05:00:00+03:00").getTime();
+
+  const $ = id => document.getElementById(id);
+  const pad = n => String(n).padStart(2,"0");
+
+  function render(){
+    const diff = Math.max(0, target - Date.now());
+    const totalSeconds = Math.floor(diff/1000);
+    const hours = Math.floor(totalSeconds/3600);
+    const minutes = Math.floor((totalSeconds%3600)/60);
+    const seconds = totalSeconds%60;
+
+    $("hours").textContent = hours;
+    $("minutes").textContent = pad(minutes);
+    $("seconds").textContent = pad(seconds);
+
+    if(diff <= 0){
+      $("countCard").classList.add("hidden");
+      $("formArea").classList.add("hidden");
+      $("after").classList.remove("hidden");
+      clearInterval(timer);
+    }
+  }
+  render();
+  const timer = setInterval(render,1000);
+
+  function toast(text){
+    const t=$("toast"); t.textContent=text; t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"),2200);
+  }
+  function submitMessage(kind){
+    const msg=$("message").value.trim();
+    if(!msg){ toast("اكتب رسالتك الأول"); $("message").focus(); return; }
+
+    const phone = "201205619991";
+    const prefix = kind === "sweet"
+      ? "كلمة حلوة من موقع عيد الميلاد: "
+      : "رسالة من موقع عيد الميلاد: ";
+    const url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(prefix + msg);
+
+    window.location.href = url;
+  }
+  $("sendBtn").onclick=()=>submitMessage("message");
+  $("sweetBtn").onclick=()=>submitMessage("sweet");
+  $("afterBtn").onclick=()=>{$("formArea").classList.remove("hidden");$("after").classList.add("hidden");$("message").focus()};
+</script>
+</body>
+</html>
